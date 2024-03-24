@@ -1,113 +1,152 @@
-import Image from "next/image";
+'use client'
+import CustomOption from "@/components/CustomOption";
+import { CustomSelectElement } from "@/components/CustomSelectElement";
+import DatePicker from "@/components/DatePicker";
+import DayContainer from "@/components/DayContainer";
+import { useState } from "react";
+import * as XLSX from 'xlsx';
+
 
 export default function Home() {
+  const initialData = {
+    teams: ["Animals", "Calm-Chorz", "Kill Squad", "Motley Crew", "Squashers", "Sultans", "Warriorz",],
+    players: {
+      "Animals": ["Harjinder Singh", "Sikander Kamal", "Amit Mina", "Ashim Shrivastava", "Dhiraj Khanna", "Divay Pratap", "Ashish Kumar", "Piyush Sachdeva", "Neville Seth", "Raghav Gupta", "Sanjay Gupta",],
+      "Calm-Chorz": ["Chetan Malhotra", "Gaurav Verma", "Rohit Sehgal", "Sumit Kumar Johri", "Rahul Shah", "Shikhar Sharma", "Robin Groser", "Pavandeep Choudhary", "Abhishek Goyal", "Vikas Phogaat", "Nikhil Rajpal"],
+      "Kill Squad":["Viraj Sinh","Gaurav Goel","Harpreet Chawla","Prashant Jetley","Akhil Puri","Rohit Dalal","Rachit Bahri","Amit Malik","Ajay Kohli","Nandy Narang","Sandeep Neha"],
+      "Motley Crew":["Rahul Batra","Abhishek Kalia","Nitin Aggarwal","Ravi Sharma","Amol Kalra","Asit Dhingra","Bawa Chandhok","Sukrita","Kushal Gupta","Sahil Jain","Hardesh"],
+      "Squashers":["Ajnav Dhawan","Mrigank Tripathi","Rahul Bharti","Salil Malhotra","Roopam Jain","SukhSagar Singh","Dhruv Sahai","Vipin","Saurav Khemani","Samir Dewan","Ranjan Pal"],
+      "Sultans":["Pranav Bassi","Anirudh Sood","Karan Bedi","Arjun Mehta","Pranay Kapoor","Amit Jain","Gaurav Marwah","Ashish Gupta","Manish Handa","Sumit Nanda","Vir Mehta"],
+      "Warriorz":["Yashwinder Chikkara","Akul Juneja","Manmeet Walia","Saurabh Mehta","Tanmay Khandelawal","Harshit Jain","Atishay Kumar","Rajan Puri","Sumit Kumar Domyan","Adeep Arora","Gautam Singh"]
+    },
+    timings: {
+      "sunday": {
+        "9:00 AM": false,
+        "9:30 AM": false,
+        "10:00 AM": false,
+        "10:30 AM": false,
+        "11:00 AM": false,
+        "11:30 AM": false,
+        "12:00 Noon": false,
+        "12:30 PM": false,
+        "1:00 PM": false,
+        "1:30 PM": false,
+        "2:00 PM": false,
+        "2:30 PM": false,
+        "3:00 PM": false,
+        "3:30 PM": false,
+        "4:00 PM": false,
+        "4:30 PM": false,
+        "5:00 PM": false,
+        "5:30 PM": false
+      },
+      "saturday": {
+        "9:00 AM": false,
+        "9:30 AM": false,
+        "10:00 AM": false,
+        "10:30 AM": false,
+        "11:00 AM": false,
+        "11:30 AM": false,
+        "12:00 Noon": false,
+        "12:30 PM": false,
+        "1:00 PM": false,
+        "1:30 PM": false,
+        "2:00 PM": false,
+        "2:30 PM": false,
+        "3:00 PM": false,
+        "3:30 PM": false,
+        "4:00 PM": false,
+        "4:30 PM": false,
+        "5:00 PM": false,
+        "5:30 PM": false
+      }
+    }
+  }
+  const [team, setTeam] = useState("")
+  const [player, setPlayer] = useState("")
+  const [date, setDate] = useState('yyyy-mm-dd');
+  const [timings, setTimings] = useState(initialData.timings);
+  const [savedSelections, setSavedSelections] = useState([]);
+
+  const handleTeamChange = (e) => {
+    setTeam(e.target.value);
+    setPlayer('');
+  }
+  const handlePlayerChange = (e) => {
+    setPlayer(e.target.value);
+  }
+  const handleTimingChange = (day, time) => {
+    setTimings(prevTimings => ({
+      ...prevTimings,
+      [day]: {
+        ...prevTimings[day],
+        [time]: !prevTimings[day][time]
+      }
+    }));
+  };
+  const handleTimingChangeThroughOption = (day, type) => {
+    const updatedTimings = Object.keys(initialData.timings).reduce((acc, day) => {
+      acc[day] = Object.fromEntries(
+        Object.entries(initialData.timings[day]).map(([time, _]) => [time, type === "available" ? true : false])
+      );
+      return acc;
+    }, {});
+    setTimings(prevTimings => ({
+      ...prevTimings,
+      [day]: updatedTimings[day]
+    }));
+  };
+  const handleSave = () => {
+    if (date !== 'yyyy-mm-dd' && team && player ) {
+      const flattenedTimings = { 'Date': date, 'Team Name': team, 'Player Name': player };
+      Object.keys(timings).forEach(day => {
+        Object.entries(timings[day]).forEach(([time, available]) => {
+          if (available) {
+            flattenedTimings[`${day}_${time}`] = '✓';
+          } else {
+            flattenedTimings[`${day}_${time}`] = 'X';
+          }
+        });
+      });
+      setSavedSelections(prevSelections => [...prevSelections, flattenedTimings]);
+      setTeam('');
+      setPlayer('');
+      setTimings(initialData.timings);
+      alert('Add others players entries also')
+   
+    } else {
+      alert("Please Select team or player or date!!!")
+    }
+  };
+  const handleDownload = () => {
+    const allSelections = savedSelections;
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(allSelections);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Selections');
+    XLSX.writeFile(workbook, 'selections.xlsx');
+    location.reload();
+  };
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div>
+      <div className="flex justify-around">
+        <CustomSelectElement name="Team" onChange={handleTeamChange} value={team} data={initialData.teams} />
+        <CustomSelectElement name="Player" onChange={handlePlayerChange} value={player} data={team ? initialData.players[team] : []} />
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <DatePicker value={date} onChange={(e) => setDate(e.target.value)} />
+      <div className="flex w-full h-auto flex-wrap justify-evenly items-center gap-3 mt-10">
+        <CustomOption onClick={() => handleTimingChangeThroughOption('saturday', 'available')} type="Available:&nbsp;" option={"All time slots on Saturday "} />
+        <CustomOption onClick={() => handleTimingChangeThroughOption('sunday', 'available')} type="Available:&nbsp;" option={"All time slots on Sunday "} />
+        <CustomOption onClick={() => handleTimingChangeThroughOption('saturday', 'unavailable')} type="Unavailable:-&nbsp;" option={"All time slots on Saturday "} />
+        <CustomOption onClick={() => handleTimingChangeThroughOption('sunday', 'unavailable')} type="Unavailable:-&nbsp;" option={"All time slots on Sunday "} />
       </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className="flex xs:inline-block sm:flex p-2 mt-2 w-full justify-evenly items-center">
+        <DayContainer value={timings} onChange={handleTimingChange} day="saturday" timingData={initialData.timings["saturday"]} />
+        <DayContainer value={timings} onChange={handleTimingChange} day="sunday" timingData={initialData.timings["sunday"]} />
       </div>
-    </main>
-  );
+      <div className="flex flex-col gap-3 justify-center items-center w-full mt-5">
+        <button onClick={handleSave} className="bg-green-600 rounded-lg text-white px-10 py-1 w-1/2">Save</button>
+        <button onClick={handleDownload} disabled={savedSelections.length > 0 ? false : true} className={`${savedSelections.length > 0 ? 'bg-blue-600' : 'bg-gray-400'} ${!savedSelections.length > 0 && 'cursor-not-allowed'}  rounded-lg text-white px-10 py-1 w-1/2`}>Download Excel File</button>
+      </div>
+    </div>
+  )
 }
