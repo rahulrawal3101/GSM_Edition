@@ -9,7 +9,7 @@ import * as XLSX from 'xlsx';
 
 export default function Home() {
   const initialData = {
-    teams: ["Animals", "Calm-Chorz", "Kill Squad", "Motley Crew", "Squashers", "Sultans", "Warriorz",],
+    teams: ["Animals", "Calm-Chorz", "Kill Squad", "Motley Crew", "Squashers", "Sultans", "Warriorz","Bust your Balls"],
     players: {
       "Animals": ["Harjinder Singh", "Sikander Kamal", "Amit Mina", "Ashim Shrivastava", "Dhiraj Khanna", "Divay Pratap", "Ashish Kumar", "Piyush Sachdeva", "Neville Seth", "Raghav Gupta", "Sanjay Gupta",],
       "Calm-Chorz": ["Chetan Malhotra", "Gaurav Verma", "Rohit Sehgal", "Sumit Kumar Johri", "Rahul Shah", "Shikhar Sharma", "Robin Groser", "Pavandeep Choudhary", "Abhishek Goyal", "Vikas Phogaat", "Nikhil Rajpal"],
@@ -17,10 +17,11 @@ export default function Home() {
       "Motley Crew":["Rahul Batra","Abhishek Kalia","Nitin Aggarwal","Ravi Sharma","Amol Kalra","Asit Dhingra","Bawa Chandhok","Sukrita","Kushal Gupta","Sahil Jain","Hardesh"],
       "Squashers":["Ajnav Dhawan","Mrigank Tripathi","Rahul Bharti","Salil Malhotra","Roopam Jain","SukhSagar Singh","Dhruv Sahai","Vipin","Saurav Khemani","Samir Dewan","Ranjan Pal"],
       "Sultans":["Pranav Bassi","Anirudh Sood","Karan Bedi","Arjun Mehta","Pranay Kapoor","Amit Jain","Gaurav Marwah","Ashish Gupta","Manish Handa","Sumit Nanda","Vir Mehta"],
-      "Warriorz":["Yashwinder Chikkara","Akul Juneja","Manmeet Walia","Saurabh Mehta","Tanmay Khandelawal","Harshit Jain","Atishay Kumar","Rajan Puri","Sumit Kumar Domyan","Adeep Arora","Gautam Singh"]
+      "Warriorz":["Yashwinder Chikkara","Akul Juneja","Manmeet Walia","Saurabh Mehta","Tanmay Khandelawal","Harshit Jain","Atishay Kumar","Rajan Puri","Sumit Kumar Domyan","Adeep Arora","Gautam Singh"],
+      "Bust your Balls":["Chirag Galundia","Siddhant Madan","Sandeep Nair","Amit Bhatia","Shantanu Ghosh","Deepak Thakran","Rahul Keswani","Sachin Jain","Sunil Pahuja","Ajay Kumar","Matthew Koshy"]
     },
     timings: {
-      "sunday": {
+      "saturday": {
         "9:00 AM": false,
         "9:30 AM": false,
         "10:00 AM": false,
@@ -40,7 +41,7 @@ export default function Home() {
         "5:00 PM": false,
         "5:30 PM": false
       },
-      "saturday": {
+      "sunday": {
         "9:00 AM": false,
         "9:30 AM": false,
         "10:00 AM": false,
@@ -102,9 +103,9 @@ export default function Home() {
       Object.keys(timings).forEach(day => {
         Object.entries(timings[day]).forEach(([time, available]) => {
           if (available) {
-            flattenedTimings[`${day}_${time}`] = '✓';
+            flattenedTimings[`${day} ${time}`] = '✓';
           } else {
-            flattenedTimings[`${day}_${time}`] = 'X';
+            flattenedTimings[`${day} ${time}`] = 'X';
           }
         });
       });
